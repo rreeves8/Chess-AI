@@ -1,4 +1,4 @@
-import { inBounds, isDiagonal, isStraight, peiceInTheWay, positive, toPositive, toVector, validateMove } from "./PeiceLogic";
+import { inBounds, isDiagonal, isStraight, peiceInTheWay, positive, pythagrous, toPositive, toVector, validateMove } from "./PeiceLogic";
 import { PeiceType, PeiceADT, Player, Board, Move, MoveValidator } from "./types";
 
 export class Peice implements PeiceADT {
@@ -22,12 +22,29 @@ export class Peice implements PeiceADT {
         return this.player;
     }
 
-    getType(): string {
-        return this.constructor.name.toLowerCase();
+    getName(): string {
+        return this.constructor.name.toLowerCase() + "-" + this.getPlayer();
+    }
+
+    getType(): PeiceType {
+        return this.constructor.name.toLowerCase() as PeiceType
     }
 
     getValidMoves(board: Board): MoveValidator {
         throw new Error("not implemented");
+    }
+
+    isCheck(board: Board, king: Peice): boolean {
+        console.log(this.player)
+        if (this.player === king.player || this.getType() === 'king') {
+            return false
+        }
+        else {
+            let moveValidator = this.getValidMoves(board)
+            let kingPositions = king.getPosition()
+
+            return moveValidator(this.i, this.j, kingPositions[0], kingPositions[1])
+        }
     }
 
     updatePosition(i: number, j: number) {
@@ -36,7 +53,7 @@ export class Peice implements PeiceADT {
     }
 
     getPosition() {
-        return { i: this.i, j: this.j };
+        return [this.i, this.j]
     }
 }
 
@@ -45,17 +62,19 @@ export class Pawn extends Peice {
 
     override getValidMoves(board: Board): MoveValidator {
         return (i: number, j: number, nextI: number, nextJ: number) => {
-            console.log("running pawn validator");
+            let nextSpot = board[nextI][nextJ]
             let vector = toVector(i, j, nextI, nextJ);
             let magnitude = positive(vector);
 
-            console.log(vector, magnitude);
+            let directionVector = (nextSpot instanceof Peice) ? (
+                magnitude.dx === magnitude.dy
+            ) : isStraight(vector)
 
             let direction = this.getPlayer() === "white" ? vector.dx < 0 : vector.dx > 0;
             let distance = this.hasMoved ? magnitude.dx === 1 : magnitude.dx === 1 || magnitude.dx === 2;
             this.hasMoved = true;
 
-            return inBounds(nextI, nextJ) && isStraight(vector) && direction && distance;
+            return validateMove(board, i, j, nextI, nextJ) && directionVector && direction && distance;
         };
     }
 }
@@ -66,8 +85,8 @@ export class Knight extends Peice {
             let vector = toVector(i, j, nextI, nextJ);
             let magnitude = positive(vector);
 
-            let up = magnitude.dx === 3 && magnitude.dy === 2;
-            let down = magnitude.dx === 2 && magnitude.dy === 3;
+            let up = magnitude.dx === 2 && magnitude.dy === 1;
+            let down = magnitude.dx === 1 && magnitude.dy === 2;
 
             return inBounds(nextI, nextJ) && (up || down);
         };
@@ -78,7 +97,8 @@ export class Castle extends Peice {
     override getValidMoves(board: Board): MoveValidator {
         return (i: number, j: number, nextI: number, nextJ: number) => {
             let vector = toVector(i, j, nextI, nextJ);
-            return inBounds(nextI, nextJ) && isStraight(vector) && !isDiagonal(vector);
+
+            return validateMove(board, i, j, nextI, nextJ) && isStraight(vector) && !isDiagonal(vector);
         };
     }
 }
@@ -86,7 +106,8 @@ export class Castle extends Peice {
 export class Bishop extends Peice {
     override getValidMoves(board: Board): MoveValidator {
         return (i: number, j: number, nextI: number, nextJ: number) => {
-            return true;
+            let vector = toVector(i, j, nextI, nextJ);
+            return validateMove(board, i, j, nextI, nextJ) && !isStraight(vector) && isDiagonal(vector);
         };
     }
 }
@@ -94,7 +115,8 @@ export class Bishop extends Peice {
 export class Queen extends Peice {
     override getValidMoves(board: Board): MoveValidator {
         return (i: number, j: number, nextI: number, nextJ: number) => {
-            return true;
+            console.log(validateMove(board, i, j, nextI, nextJ))
+            return validateMove(board, i, j, nextI, nextJ);
         };
     }
 }
@@ -102,7 +124,9 @@ export class Queen extends Peice {
 export class King extends Peice {
     override getValidMoves(board: Board): MoveValidator {
         return (i: number, j: number, nextI: number, nextJ: number) => {
-            return true;
+            let vector = toVector(i, j, nextI, nextJ);
+
+            return validateMove(board, i, j, nextI, nextJ) && pythagrous(vector) < Math.sqrt(2);
         };
     }
 }
@@ -149,5 +173,10 @@ const peiceLookUp: Map<PeiceType, typeof Peice> = new Map<PeiceType, typeof Peic
     .set("queen", Queen)
     .set("king", King);
 
-export const createPeice = (peiceType: PeiceType, player: Player, i: number, j: number): Peice =>
-    new (peiceLookUp.get(peiceType) as typeof Peice)(player, PeiceCost.get(peiceType) as number, i, j);
+export const createPeice = (peiceType: PeiceType, player: Player, i: number, j: number, callBack: (string: string, peice: Peice) => void): Peice => {
+    let newPeice = new (peiceLookUp.get(peiceType) as typeof Peice)(player, PeiceCost.get(peiceType) as number, i, j);
+
+    callBack(newPeice.getName(), newPeice)
+    return newPeice
+}
+
