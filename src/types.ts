@@ -17,6 +17,7 @@ export type Vector = {
     dx: number;
     dy: number;
 };
+
 export type Board = Array<Array<Peice | "">>;
 
 export type MoveValidator = (i: number, j: number, nextI: number, nextJ: number) => boolean;

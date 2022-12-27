@@ -1,7 +1,5 @@
-//[trueIfForward, trueIfIsFirst, trueIfDiagonal]
-
 import { Peice } from "./Peice";
-import { Board, MoveValidator, PeiceADT, Vector } from "./types";
+import { Board, Vector } from "./types";
 
 export const validateMove = (board: Board, i: number, j: number, nextI: number, nextJ: number) => {
     return inBounds(nextI, nextJ) && !peiceInTheWay(board, i, j, nextI, nextJ)

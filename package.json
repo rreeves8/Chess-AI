@@ -1,6 +1,6 @@
 {
-  "name": "chessai",
-  "version": "1.0.0",
+  "name": "@magnusreeves/chess-ai",
+  "version": "1.0.3",
   "description": "",
   "scripts": {
     "start": "echo no start",
@@ -10,7 +10,9 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "rname": "^0.0.1-security",
     "ts-node": "^10.9.1"
+  },
+  "devDependencies": {
+    "typescript": "^4.9.4"
   }
 }

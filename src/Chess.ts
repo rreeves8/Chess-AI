@@ -4,7 +4,7 @@ import { Board, PeiceADT, PeiceType, Player, peices } from "./types";
 
 const startingPos = ["castle", "knight", "bishop", "queen", "king", "bishop", "knight", "castle"];
 
-export class ChessBoard {
+export default class ChessBoard {
     private turn: Player = "black";
     private board: Board;
     private peices: Map<string, Peice> = new Map()
@@ -15,15 +15,13 @@ export class ChessBoard {
             this.peices.set(key, peice)
         }
 
-        this.board = board
-            ? board
-            : [
-                Array.from(Array(8), (v: any, k: number) => createPeice(startingPos[k] as PeiceType, "black", 0, k, setMap)),
-                Array.from(Array(8), (v: any, k: number) => createPeice("pawn", "black", 1, k, setMap)),
-                ...Array.from(Array(4), (v: any, k: number) => new Array(8).fill("")),
-                Array.from(Array(8), (v: any, k: number) => createPeice("pawn", "white", 6, k, setMap)),
-                Array.from(Array(8), (v: any, k: number) => createPeice(startingPos[k] as PeiceType, "white", 7, k, setMap)),
-            ];
+        this.board = board ? board : [
+            Array.from(Array(8), (v: any, k: number) => createPeice(startingPos[k] as PeiceType, "black", 0, k, setMap)),
+            Array.from(Array(8), (v: any, k: number) => createPeice("pawn", "black", 1, k, setMap)),
+            ...Array.from(Array(4), (v: any, k: number) => new Array(8).fill("")),
+            Array.from(Array(8), (v: any, k: number) => createPeice("pawn", "white", 6, k, setMap)),
+            Array.from(Array(8), (v: any, k: number) => createPeice(startingPos[k] as PeiceType, "white", 7, k, setMap)),
+        ];
         this.check = false
     }
 
